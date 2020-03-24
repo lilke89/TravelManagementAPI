@@ -1,18 +1,26 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
 
 namespace TravelManagementApi.Models
 {
-    public class TravelOrderItem : BaseEntity
+    public class TravelOrderDataItem
     {
-        public long Id { get; set; }
+        public string FileName { get; set; }
 
-        public string Name { get; set; }
-
-        public string Path { get; set; }
+        public string Employee { get; set; }
+        public string Initials { get; set; }
+        public string InitialsShorthand { get; set; }
+        public string OrderNumber { get; set; }
+        public string Role { get; set; }
+        public string City { get; set; }
+        public string DateStart { get; set; }
+        public string DateEnd { get; set; }
+        public string DatePaid { get; set; }
+        public string NumberOfDays { get; set; }
+        public string AmountPerDay { get; set; }
+        public string AmountSumForDays { get; set; }
     }
 }

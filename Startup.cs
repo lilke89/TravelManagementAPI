@@ -32,7 +32,7 @@ namespace TravelManagementApi
                                         .AllowAnyMethod();
                 });
             });
-            services.AddDbContext<TravelOrderContext>(opt =>
+            services.AddDbContext<TravelOrderListContext>(opt =>
             opt.UseInMemoryDatabase("TravelOrders"));
             services.AddControllers();
         }
