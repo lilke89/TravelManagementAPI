@@ -1,16 +1,14 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using DocumentFormat.OpenXml.Packaging;
-using DocumentFormat.OpenXml.Spreadsheet;
+using DocumentFormat.OpenXml;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using TravelManagementApi.Models;
+using TravelManagementApi.Models.TravelOrderDocument;
 using TravelManagementApi.Models.TravelOrderList;
 
 namespace TravelManagementApi.Controllers
@@ -19,29 +17,29 @@ namespace TravelManagementApi.Controllers
     [ApiController]
     public class TravelOrderListItemController : ControllerBase
     {
-        private readonly TravelOrderListContext _context;
         IWebHostEnvironment _webHostingEnvironment;
+        private readonly TravelOrderListContext _travelOrderListcontext;
+        private readonly TravelOrderDocumentContext _travelOrderDocumentContext;
 
-
-        public TravelOrderListItemController(IWebHostEnvironment webHostingEnvironment, TravelOrderListContext context)
+        public TravelOrderListItemController(IWebHostEnvironment webHostingEnvironment, TravelOrderListContext travelOrderListContext, TravelOrderDocumentContext travelOrderDocumentContext)
         {
             _webHostingEnvironment = webHostingEnvironment;
-            _context = context;
-
+            _travelOrderListcontext = travelOrderListContext;
+            _travelOrderDocumentContext = travelOrderDocumentContext;
         }
 
         // GET: api/TravelOrderListItems
         [HttpGet]
         public async Task<ActionResult<IEnumerable<TravelOrderListItem>>> GetTravelOrderListItems()
         {
-            return await _context.TravelOrderListItems.ToListAsync();
+            return await _travelOrderListcontext.TravelOrderListItems.ToListAsync();
         }
 
         // GET: api/TravelOrderListItems/5
         [HttpGet("{id}")]
         public async Task<ActionResult<TravelOrderListItem>> GetTravelOrderListItem(long id)
         {
-            var travelOrderItem = await _context.TravelOrderListItems.FindAsync(id);
+            var travelOrderItem = await _travelOrderListcontext.TravelOrderListItems.FindAsync(id);
 
             if (travelOrderItem == null)
             {
@@ -62,11 +60,11 @@ namespace TravelManagementApi.Controllers
                 return BadRequest();
             }
 
-            _context.Entry(travelOrderItem).State = EntityState.Modified;
+            _travelOrderListcontext.Entry(travelOrderItem).State = EntityState.Modified;
 
             try
             {
-                await _context.SaveChangesAsync();
+                await _travelOrderListcontext.SaveChangesAsync();
             }
             catch (DbUpdateConcurrencyException)
             {
@@ -87,20 +85,32 @@ namespace TravelManagementApi.Controllers
         // To protect from overposting attacks, please enable the specific properties you want to bind to, for
         // more details see https://aka.ms/RazorPagesCRUD.
         [HttpPost]
-        public async Task<ActionResult<TravelOrderListItem>> PostTravelOrderListItem([FromForm(Name = "document")] IFormFile traveloOrderListItem)
+        public async Task<ActionResult<TravelOrderListItem>> PostTravelOrderListItem([FromForm(Name = "document")] IFormFile travelOrderListItemFormFile)
         {
-            var travelOrderListItemManager = new TravelOrderListItemManager(traveloOrderListItem);
+            //Excel part
+            var travelOrderListItemManager = new TravelOrderListItemManager(travelOrderListItemFormFile);
 
             var uploads = Path.Combine(_webHostingEnvironment.ContentRootPath, "uploads/spreadsheets");
             var filePath = Path.Combine(uploads, travelOrderListItemManager.ListName);
 
             var travelOrderListItem = await travelOrderListItemManager.SaveListAsync(filePath);
 
-
-            _context.TravelOrderListItems.Add(travelOrderListItem);
-            await _context.SaveChangesAsync();
+            _travelOrderListcontext.TravelOrderListItems.Add(travelOrderListItem);
+            await _travelOrderListcontext.SaveChangesAsync();
 
             var travelOrderDataItems = travelOrderListItemManager.GetExtractedListData();
+
+            // Word Part
+            var documentTemplatePath = Path.Combine(_webHostingEnvironment.ContentRootPath, "uploads/templates/DocumentTemplate.docx");
+            var generatedDocumentsPath = Path.Combine(_webHostingEnvironment.ContentRootPath, "uploads/documents");
+
+            var travelOrderDocumentManager = new TravelOrderDocumentManager(documentTemplatePath, travelOrderDataItems, travelOrderListItem.Id, generatedDocumentsPath);
+
+            var travelOrderDocumentItems = travelOrderDocumentManager.GenerateDocumentsFromData();
+
+
+            _travelOrderDocumentContext.AddRange(travelOrderDocumentItems);
+            await _travelOrderDocumentContext.SaveChangesAsync();
 
             return CreatedAtAction(nameof(GetTravelOrderListItem), new { id = travelOrderListItem.Id }, travelOrderListItem);
 
@@ -110,21 +120,21 @@ namespace TravelManagementApi.Controllers
         [HttpDelete("{id}")]
         public async Task<ActionResult<TravelOrderListItem>> DeleteTravelOrderListItem(long id)
         {
-            var travelOrderItem = await _context.TravelOrderListItems.FindAsync(id);
+            var travelOrderItem = await _travelOrderListcontext.TravelOrderListItems.FindAsync(id);
             if (travelOrderItem == null)
             {
                 return NotFound();
             }
 
-            _context.TravelOrderListItems.Remove(travelOrderItem);
-            await _context.SaveChangesAsync();
+            _travelOrderListcontext.TravelOrderListItems.Remove(travelOrderItem);
+            await _travelOrderListcontext.SaveChangesAsync();
 
             return travelOrderItem;
         }
 
         private bool TravelOrderItemExists(long id)
         {
-            return _context.TravelOrderListItems.Any(e => e.Id == id);
+            return _travelOrderListcontext.TravelOrderListItems.Any(e => e.Id == id);
         }
     }
 }

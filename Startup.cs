@@ -5,6 +5,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.EntityFrameworkCore;
 using TravelManagementApi.Models;
+using TravelManagementApi.Models.TravelOrderDocument;
+using Microsoft.OpenApi.Models;
 
 namespace TravelManagementApi
 {
@@ -33,8 +35,16 @@ namespace TravelManagementApi
                 });
             });
             services.AddDbContext<TravelOrderListContext>(opt =>
+            opt.UseInMemoryDatabase("TravelOrders"));            
+            services.AddDbContext<TravelOrderDocumentContext>(opt =>
             opt.UseInMemoryDatabase("TravelOrders"));
             services.AddControllers();
+
+            services.AddSwaggerGen(c =>
+            {
+                c.SwaggerDoc("v1", new OpenApiInfo { Title = "Travel Order API", Version = "v1" });
+            });
+
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -58,6 +68,12 @@ namespace TravelManagementApi
                 endpoints.MapControllers();
             });
 
+            app.UseSwagger();
+
+            app.UseSwaggerUI(c =>
+            {
+                c.SwaggerEndpoint("/swagger/v1/swagger.json", "Travel Order API V1");
+            });
         }
     }
 }

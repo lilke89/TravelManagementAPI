@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace TravelManagementApi.Models
 {
-    public class TravelOrderDataItem
+    public class TravelOrderData
     {
         public string FileName { get; set; }
 
