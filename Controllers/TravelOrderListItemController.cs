@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using MimeKit;
 using TravelManagementApi.Models;
 using TravelManagementApi.Models.TravelOrderDocument;
 using TravelManagementApi.Models.TravelOrderList;
@@ -37,16 +38,17 @@ namespace TravelManagementApi.Controllers
 
         // GET: api/TravelOrderListItems/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<TravelOrderListItem>> GetTravelOrderListItem(long id)
+        public async Task<IActionResult> GetTravelOrderListItem(long id)
         {
-            var travelOrderItem = await _travelOrderListcontext.TravelOrderListItems.FindAsync(id);
+            var travelOrderListItem = await _travelOrderListcontext.TravelOrderListItems.FindAsync(id);
 
-            if (travelOrderItem == null)
+            if (travelOrderListItem == null)
             {
                 return NotFound();
             }
 
-            return travelOrderItem;
+            var listByteArray = await System.IO.File.ReadAllBytesAsync(travelOrderListItem.Path);
+            return File(listByteArray, MimeTypes.GetMimeType(travelOrderListItem.Name), travelOrderListItem.Name);
         }
 
         // PUT: api/TravelOrderListItems/5

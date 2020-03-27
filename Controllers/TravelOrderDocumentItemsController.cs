@@ -1,10 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Net;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Reflection.Metadata;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using MimeKit;
 using TravelManagementApi.Models.TravelOrder;
 using TravelManagementApi.Models.TravelOrderDocument;
 
@@ -30,7 +34,7 @@ namespace TravelManagementApi.Controllers
 
         // GET: api/TravelOrderDocumentItems/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<TravelOrderDocumentItem>> GetTravelOrderDocumentItem(long id)
+        public async Task<IActionResult> GetTravelOrderDocumentItem(long id)
         {
             var travelOrderDocumentItem = await _context.TravelOrderDocumentItems.FindAsync(id);
 
@@ -39,7 +43,8 @@ namespace TravelManagementApi.Controllers
                 return NotFound();
             }
 
-            return travelOrderDocumentItem;
+            var documentByteArray = await System.IO.File.ReadAllBytesAsync(travelOrderDocumentItem.Path);
+            return File(documentByteArray, MimeTypes.GetMimeType(travelOrderDocumentItem.Name), travelOrderDocumentItem.Name);
         }
 
         // PUT: api/TravelOrderDocumentItems/5
