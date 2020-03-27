@@ -34,10 +34,8 @@ namespace TravelManagementApi
                                         .AllowAnyMethod();
                 });
             });
-            services.AddDbContext<TravelOrderListContext>(opt =>
-            opt.UseInMemoryDatabase("TravelOrders"));            
-            services.AddDbContext<TravelOrderDocumentContext>(opt =>
-            opt.UseInMemoryDatabase("TravelOrders"));
+            services.AddDbContext<MyContext>(opt =>
+            opt.UseSqlServer(Configuration.GetConnectionString("MicrosoftSQLConnectionString")));
             services.AddControllers();
 
             services.AddSwaggerGen(c =>
@@ -48,12 +46,14 @@ namespace TravelManagementApi
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, MyContext myContext)
         {
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
             }
+
+            myContext.Database.Migrate();
 
             app.UseCors(MyAllowSpecificOrigins);
 

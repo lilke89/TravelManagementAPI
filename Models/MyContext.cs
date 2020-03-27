@@ -1,19 +1,17 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using TravelManagementApi.Models.TravelOrder;
 
-namespace TravelManagementApi.Models.TravelOrderDocument
+namespace TravelManagementApi.Models
 {
-    public class TravelOrderDocumentContext : DbContext
+    public class MyContext : DbContext
     {
-        public TravelOrderDocumentContext(DbContextOptions<TravelOrderDocumentContext> options)
-    : base(options)
-        {
-        }
-
+        public MyContext(DbContextOptions<MyContext> options) : base(options) { }
+        public DbSet<TravelOrderListItem> TravelOrderListItems { get; set; }
         public DbSet<TravelOrderDocumentItem> TravelOrderDocumentItems { get; set; }
 
         public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)

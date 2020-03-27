@@ -1,14 +1,10 @@
 ﻿using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Net;
-using System.Net.Http;
-using System.Net.Http.Headers;
-using System.Reflection.Metadata;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MimeKit;
+using TravelManagementApi.Models;
 using TravelManagementApi.Models.TravelOrder;
 using TravelManagementApi.Models.TravelOrderDocument;
 
@@ -18,9 +14,9 @@ namespace TravelManagementApi.Controllers
     [ApiController]
     public class TravelOrderDocumentItemsController : ControllerBase
     {
-        private readonly TravelOrderDocumentContext _context;
+        private readonly MyContext _context;
 
-        public TravelOrderDocumentItemsController(TravelOrderDocumentContext context)
+        public TravelOrderDocumentItemsController(MyContext context)
         {
             _context = context;
         }
